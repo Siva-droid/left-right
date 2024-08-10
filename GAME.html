@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Left or Right</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            background-color: #e0f7fa;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        .container {
+            width: 80%;
+            max-width: 700px;
+            background: #ffffff;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            overflow-y: auto;
+            max-height: 90vh;
+        }
+
+        h1 {
+            text-align: center;
+            color: #00796b;
+            margin-bottom: 20px;
+            font-size: 26px;
+        }
+
+        .question {
+            font-weight: bold;
+            margin: 20px 0 10px;
+            font-size: 18px;
+            color: #004d40;
+        }
+
+        .answers label {
+            display: block;
+            margin-bottom: 10px;
+            font-size: 16px;
+            color: #004d40;
+            cursor: pointer;
+        }
+
+        button {
+            display: block;
+            width: 100%;
+            padding: 15px;
+            background-color: #00796b;
+            color: #fff;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 18px;
+            transition: background-color 0.3s ease;
+            margin-top: 20px;
+        }
+
+        button:hover {
+            background-color: #004d40;
+        }
+
+        #results {
+            margin-top: 20px;
+            font-size: 20px;
+            text-align: center;
+            color: #00796b;
+        }
+
+        .confetti {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 1000;
+        }
+
+        .confetti-piece {
+            position: absolute;
+            width: 10px;
+            height: 10px;
+            background-color: #ff6347;
+            opacity: 0.8;
+            border-radius: 50%;
+            animation: fall 3s linear infinite;
+        }
+
+        @keyframes fall {
+            0% {
+                transform: translateY(-100%);
+            }
+            100% {
+                transform: translateY(100vh);
+            }
+        }
+
+        .dialogue-box {
+            display: none;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            padding: 30px;
+            background-color: #ffffff;
+            border: 3px solid #00796b;
+            border-radius: 15px;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.2);
+            text-align: center;
+            z-index: 1100;
+            font-size: 20px;
+            color: #004d40;
+            max-width: 80%;
+            overflow: auto;
+        }
+
+        .dialogue-box button {
+            background-color: #00796b;
+            color: #fff;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 16px;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Left-Brain or Right-Brain Quiz</h1>
+        <div id="quiz"></div>
+        <button id="submit" onclick="showResults()">Submit Answers</button>
+    </div>
+
+    <div id="confetti" class="confetti"></div>
+
+    <div id="dialogueBox" class="dialogue-box">
+        <div id="resultMessage"></div>
+        <button onclick="closeDialogue()">Close</button>
+    </div>
+
+    <script>
+        const quizContainer = document.getElementById('quiz');
+        const resultMessageContainer = document.getElementById('resultMessage');
+        const confettiContainer = document.getElementById('confetti');
+        const dialogueBox = document.getElementById('dialogueBox');
+
+        const quizQuestions = [
+            // Left-Brain Questions
+            {
+                question: "Math Challenge: What is the next number in the sequence: 2, 4, 8, 16, ___?",
+                answers: {
+                    a: "20",
+                    b: "24",
+                    c: "32",
+                    d: "40"
+                },
+                correctAnswer: "c",
+                type: "left"
+            },
+            {
+                question: "Logic Puzzle: If all roses are flowers and some flowers fade quickly, can we conclude that some roses fade quickly?",
+                answers: {
+                    a: "Yes",
+                    b: "No"
+                },
+                correctAnswer: "b",
+                type: "left"
+            },
+            {
+                question: "Language Skill: Identify the synonym of the word 'obstinate':",
+                answers: {
+                    a: "Flexible",
+                    b: "Stubborn",
+                    c: "Agreeable",
+                    d: "Patient"
+                },
+                correctAnswer: "b",
+                type: "left"
+            },
+            {
+                question: "Analytical Thinking: Which of the following is an odd number: 14, 22, 31, 40?",
+                answers: {
+                    a: "14",
+                    b: "22",
+                    c: "31",
+                    d: "40"
+                },
+                correctAnswer: "c",
+                type: "left"
+            },
+            // Right-Brain Questions
+            {
+                question: "Creative Thinking: Imagine you're painting a picture of a sunset. What color would you likely use for the sky?",
+                answers: {
+                    a: "Blue",
+                    b: "Green",
+                    c: "Red",
+                    d: "Orange"
+                },
+                correctAnswer: "d",
+                type: "right"
+            },
+            {
+                question: "Pattern Recognition: Which shape comes next in this pattern: Square, Circle, Square, Circle, ___?",
+                answers: {
+                    a: "Square",
+                    b: "Triangle",
+                    c: "Circle",
+                    d: "Rectangle"
+                },
+                correctAnswer: "c",
+                type: "right"
+            },
+            {
+                question: "Visual Imagination: Picture a quiet forest. What do you hear?",
+                answers: {
+                    a: "Birds chirping",
+                    b: "Leaves rustling",
+                    c: "Water flowing",
+                    d: "Silence"
+                },
+                correctAnswer: "b",
+                type: "right"
+            },
+            {
+                question: "Emotional Response: If you were to write a story about a lonely tree, what would its primary feeling be?",
+                answers: {
+                    a: "Joyful",
+                    b: "Lonely",
+                    c: "Angry",
+                    d: "Confused"
+                },
+                correctAnswer: "b",
+                type: "right"
+            }
+        ];
+
+        function buildQuiz() {
+            const output = [];
+            quizQuestions.forEach((currentQuestion, questionNumber) => {
+                const answers = [];
+                for (letter in currentQuestion.answers) {
+                    answers.push(
+                        `<label>
+                            <input type="radio" name="question${questionNumber}" value="${letter}">
+                            ${letter} :
+                            ${currentQuestion.answers[letter]}
+                        </label>`
+                    );
+                }
+                output.push(
+                    `<div class="question">${currentQuestion.question}</div>
+                    <div class="answers">${answers.join('')}</div>`
+                );
+            });
+            quizContainer.innerHTML = output.join('');
+        }
+
+        function showResults() {
+            let leftBrainScore = 0;
+            let rightBrainScore = 0;
+
+            quizQuestions.forEach((currentQuestion, questionNumber) => {
+                const answerContainer = quizContainer.querySelectorAll('.answers')[questionNumber];
+                const selector = `input[name=question${questionNumber}]:checked`;
+                const userAnswer = (answerContainer.querySelector(selector) || {}).value;
+
+                if (userAnswer === currentQuestion.correctAnswer) {
+                    if (currentQuestion.type === "left") {
+                        leftBrainScore++;
+                    } else {
+                        rightBrainScore++;
+                    }
+                }
+            });
+
+            let dominantBrain = leftBrainScore > rightBrainScore ? "Left-Brain Dominant" : "Right-Brain Dominant";
+            resultMessageContainer.innerHTML = `<h2>You are ${dominantBrain}</h2><h3>Welcome to SAHS</h3>`;
+
+            // Trigger confetti
+            triggerConfetti();
+
+            // Show dialogue box with welcome message and result
+            dialogueBox.style.display = 'block';
+        }
+
+        function closeDialogue() {
+            dialogueBox.style.display = 'none';
+        }
+
+        function triggerConfetti() {
+            for (let i = 0; i < 100; i++) {
+                const confettiPiece = document.createElement('div');
+                confettiPiece.classList.add('confetti-piece');
+                confettiPiece.style.left = Math.random() * 100 + 'vw';
+                confettiPiece.style.animationDelay = Math.random() * 2 + 's';
+                confettiContainer.appendChild(confettiPiece);
+                setTimeout(() => {
+                    confettiPiece.remove();
+                }, 5000);
+            }
+        }
+
+        buildQuiz();
+    </script>
+</body>
+</html>
